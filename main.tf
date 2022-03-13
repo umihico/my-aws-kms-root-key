@@ -8,7 +8,7 @@ resource "aws_kms_key" "shared" {
   is_enabled               = true
   multi_region             = false
   policy = jsonencode({
-    "Id" : "key-default-1",
+    "Id" : "custom-shared-key-policy",
     "Statement" : [
       {
         "Action" : "kms:*",
@@ -17,8 +17,22 @@ resource "aws_kms_key" "shared" {
           "AWS" : "arn:aws:iam::${data.aws_caller_identity.self.account_id}:root"
         },
         "Resource" : "*",
-        "Sid" : "Enable IAM User Permissions"
-      }
+        "Sid" : "Copied from default kms policy"
+      },
+      {
+        "Action" : [
+          "kms:Encrypt",
+          "kms:Decrypt",
+        ],
+        "Effect" : "Allow",
+        "Principal" : {
+          "AWS" : [
+            "arn:aws:iam::${var.circleci_account_id}:user/public-circleci",
+          ]
+        },
+        "Resource" : "*",
+        "Sid" : "Allowing child accounts to encrypt/decrypt their data"
+      },
     ],
     "Version" : "2012-10-17"
   })

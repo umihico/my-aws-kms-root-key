@@ -1,5 +1,10 @@
 locals {
   backend_path = "terraform-states-${get_aws_account_id()}-shared-kms-key"
+  accounts     = jsondecode(run_cmd("aws", "organizations", "list-accounts", "--query", "Accounts[].{id:Id,name:Name}"))
+}
+
+inputs = {
+  circleci_account_id = [for a in local.accounts : a if a.name == "public-circleci"][0].id
 }
 
 remote_state {
